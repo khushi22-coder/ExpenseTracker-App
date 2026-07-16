@@ -5,15 +5,17 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {Expense.class}, version = 1, exportSchema = false)
+@Database(entities = {Expense.class, User.class},
+        version = 2, exportSchema = false)
 public abstract class ExpenseDatabase extends RoomDatabase {
 
     private static ExpenseDatabase instance;
 
     public abstract ExpenseDao expenseDao();
+    public abstract UserDao userDao();
 
-    // Singleton - only one database instance
-    public static synchronized ExpenseDatabase getInstance(Context context) {
+    public static synchronized ExpenseDatabase getInstance(
+            Context context) {
         if (instance == null) {
             instance = Room.databaseBuilder(
                             context.getApplicationContext(),

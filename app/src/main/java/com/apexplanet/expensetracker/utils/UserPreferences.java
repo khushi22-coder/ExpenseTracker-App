@@ -10,6 +10,7 @@ public class UserPreferences {
     private static final String KEY_USER_NAME = "userName";
     private static final String KEY_USER_EMAIL = "userEmail";
     private static final String KEY_ONBOARDING_SEEN = "onboardingSeen";
+    private static final String KEY_BUDGET = "budget";
 
     private SharedPreferences sharedPreferences;
 
@@ -19,56 +20,64 @@ public class UserPreferences {
         );
     }
 
-    // Save login state
     public void setLoggedIn(boolean isLoggedIn) {
         sharedPreferences.edit()
                 .putBoolean(KEY_IS_LOGGED_IN, isLoggedIn)
                 .apply();
     }
 
-    // Check if logged in
     public boolean isLoggedIn() {
-        return sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false);
+        return sharedPreferences.getBoolean(
+                KEY_IS_LOGGED_IN, false
+        );
     }
 
-    // Save user name
     public void setUserName(String name) {
         sharedPreferences.edit()
                 .putString(KEY_USER_NAME, name)
                 .apply();
     }
 
-    // Get user name
     public String getUserName() {
         return sharedPreferences.getString(KEY_USER_NAME, "User");
     }
 
-    // Save user email
     public void setUserEmail(String email) {
         sharedPreferences.edit()
                 .putString(KEY_USER_EMAIL, email)
                 .apply();
     }
 
-    // Get user email
     public String getUserEmail() {
         return sharedPreferences.getString(KEY_USER_EMAIL, "");
     }
 
-    // Save onboarding seen
     public void setOnboardingSeen(boolean seen) {
         sharedPreferences.edit()
                 .putBoolean(KEY_ONBOARDING_SEEN, seen)
                 .apply();
     }
 
-    // Check if onboarding seen
     public boolean isOnboardingSeen() {
-        return sharedPreferences.getBoolean(KEY_ONBOARDING_SEEN, false);
+        return sharedPreferences.getBoolean(
+                KEY_ONBOARDING_SEEN, false
+        );
     }
 
-    // Logout
+    // Budget methods
+    public void setBudget(double budget) {
+        sharedPreferences.edit()
+                .putFloat(KEY_BUDGET, (float) budget)
+                .apply();
+    }
+
+    public double getBudget() {
+        return sharedPreferences.getFloat(KEY_BUDGET, 0f);
+    }
+
     public void logout() {
+        boolean onboardingSeen = isOnboardingSeen();
         sharedPreferences.edit().clear().apply();
+        setOnboardingSeen(onboardingSeen);
     }
 }

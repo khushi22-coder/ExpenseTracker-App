@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.apexplanet.expensetracker.R;
 import com.apexplanet.expensetracker.data.Expense;
+import com.apexplanet.expensetracker.utils.NotificationHelper;
 
 import java.util.Calendar;
 
@@ -26,8 +27,8 @@ public class AddExpenseActivity extends AppCompatActivity {
     private RadioButton rbIncome, rbExpense;
     private Button btnSave;
     private ExpenseViewModel viewModel;
+    private NotificationHelper notificationHelper;
 
-    // Categories list
     private String[] categories = {
             "Food", "Transport", "Shopping",
             "Bills", "Health", "Education",
@@ -39,13 +40,14 @@ public class AddExpenseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expense);
 
-        // Set title
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Add Transaction");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // Connect XML views to Java
+        // Initialize notification helper
+        notificationHelper = new NotificationHelper(this);
+
         etTitle = findViewById(R.id.etTitle);
         etAmount = findViewById(R.id.etAmount);
         etDate = findViewById(R.id.etDate);
@@ -55,10 +57,9 @@ public class AddExpenseActivity extends AppCompatActivity {
         rbExpense = findViewById(R.id.rbExpense);
         btnSave = findViewById(R.id.btnSave);
 
-        // Setup ViewModel
-        viewModel = new ViewModelProvider(this).get(ExpenseViewModel.class);
+        viewModel = new ViewModelProvider(this)
+                .get(ExpenseViewModel.class);
 
-        // Setup Category Spinner
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_spinner_item,
@@ -69,14 +70,10 @@ public class AddExpenseActivity extends AppCompatActivity {
         );
         spinnerCategory.setAdapter(adapter);
 
-        // Date picker when clicking date field
         etDate.setOnClickListener(v -> showDatePicker());
-
-        // Save button click
         btnSave.setOnClickListener(v -> saveExpense());
     }
 
-    // Show Date Picker Dialog
     private void showDatePicker() {
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -94,14 +91,13 @@ public class AddExpenseActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    // Save Expense to Database
     private void saveExpense() {
         String title = etTitle.getText().toString().trim();
         String amountStr = etAmount.getText().toString().trim();
         String date = etDate.getText().toString().trim();
-        String category = spinnerCategory.getSelectedItem().toString();
+        String category = spinnerCategory
+                .getSelectedItem().toString();
 
-        // Validation - check empty fields
         if (title.isEmpty()) {
             etTitle.setError("Please enter title");
             return;
@@ -115,24 +111,24 @@ public class AddExpenseActivity extends AppCompatActivity {
             return;
         }
 
-        // Get type (Income or Expense)
         String type = rbIncome.isChecked() ? "INCOME" : "EXPENSE";
-
         double amount = Double.parseDouble(amountStr);
 
-        // Create new Expense object
-        Expense expense = new Expense(title, amount, category, date, type);
-
-        // Save to database
+        Expense expense = new Expense(
+                title, amount, category, date, type
+        );
         viewModel.insert(expense);
 
-        Toast.makeText(this, "Transaction saved!", Toast.LENGTH_SHORT).show();
+        // Show notification
+        notificationHelper.showExpenseAddedNotification(
+                title, amount, type
+        );
 
-        // Go back to main screen
+        Toast.makeText(this,
+                "Transaction saved!", Toast.LENGTH_SHORT).show();
         finish();
     }
 
-    // Back button
     @Override
     public boolean onSupportNavigateUp() {
         finish();

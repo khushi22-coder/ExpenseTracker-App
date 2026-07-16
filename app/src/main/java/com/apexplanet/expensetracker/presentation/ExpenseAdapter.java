@@ -54,6 +54,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         return expenseList.size();
     }
 
+    // Get expense at position for swipe delete
+    public Expense getExpenseAt(int position) {
+        return expenseList.get(position);
+    }
+
     // ViewHolder - holds each item view
     class ExpenseViewHolder extends RecyclerView.ViewHolder {
 

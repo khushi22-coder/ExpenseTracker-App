@@ -11,7 +11,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.apexplanet.expensetracker.MainActivity;
 import com.apexplanet.expensetracker.R;
+import com.apexplanet.expensetracker.data.ExpenseDatabase;
+import com.apexplanet.expensetracker.data.User;
+import com.apexplanet.expensetracker.utils.BiometricHelper;
 import com.apexplanet.expensetracker.utils.UserPreferences;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -19,33 +25,67 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin;
     private TextView tvSignup;
     private UserPreferences userPreferences;
+    private BiometricHelper biometricHelper;
+    private ExpenseDatabase database;
+    private ExecutorService executorService =
+            Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Hide action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         userPreferences = new UserPreferences(this);
+        biometricHelper = new BiometricHelper(this);
+        database = ExpenseDatabase.getInstance(this);
 
-        // Connect views
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvSignup = findViewById(R.id.tvSignup);
 
-        // Login button click
-        btnLogin.setOnClickListener(v -> loginUser());
+        // Show biometric if available
+        if (biometricHelper.isBiometricAvailable()
+                && !userPreferences.getUserEmail().isEmpty()) {
+            showBiometricLogin();
+        }
 
-        // Go to signup
+        btnLogin.setOnClickListener(v -> loginUser());
         tvSignup.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(
+                    LoginActivity.this, SignupActivity.class
+            ));
         });
+    }
+
+    private void showBiometricLogin() {
+        biometricHelper.showBiometricPrompt(
+                new BiometricHelper.BiometricCallback() {
+                    @Override
+                    public void onSuccess() {
+                        userPreferences.setLoggedIn(true);
+                        Toast.makeText(LoginActivity.this,
+                                "Fingerprint login successful!",
+                                Toast.LENGTH_SHORT).show();
+                        goToMain();
+                    }
+
+                    @Override
+                    public void onFailure() {
+                        Toast.makeText(LoginActivity.this,
+                                "Fingerprint not recognized!",
+                                Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        // User cancelled - use password
+                    }
+                });
     }
 
     private void loginUser() {
@@ -57,7 +97,8 @@ public class LoginActivity extends AppCompatActivity {
             etEmail.setError("Please enter email");
             return;
         }
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!android.util.Patterns.EMAIL_ADDRESS
+                .matcher(email).matches()) {
             etEmail.setError("Please enter valid email");
             return;
         }
@@ -66,29 +107,48 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
         if (password.length() < 6) {
-            etPassword.setError("Password must be at least 6 characters");
+            etPassword.setError("Min 6 characters");
             return;
         }
 
-        // Check saved credentials
-        String savedEmail = userPreferences.getUserEmail();
-        String savedName = userPreferences.getUserName();
+        // Show loading
+        btnLogin.setEnabled(false);
+        btnLogin.setText("Logging in...");
 
-        if (savedEmail.equals(email)) {
-            // Login successful
-            userPreferences.setLoggedIn(true);
-            Toast.makeText(this, "Welcome back " + savedName + "!",
-                    Toast.LENGTH_SHORT).show();
+        // Check credentials in database
+        executorService.execute(() -> {
+            User user = database.userDao().login(email, password);
 
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        } else {
-            Toast.makeText(this,
-                    "Email not found! Please sign up first.",
-                    Toast.LENGTH_SHORT).show();
-        }
+            runOnUiThread(() -> {
+                if (user != null) {
+                    // Login successful
+                    userPreferences.setLoggedIn(true);
+                    userPreferences.setUserName(user.getName());
+                    userPreferences.setUserEmail(user.getEmail());
+
+                    Toast.makeText(LoginActivity.this,
+                            "Welcome back " + user.getName() + "!",
+                            Toast.LENGTH_SHORT).show();
+                    goToMain();
+                } else {
+                    // Login failed
+                    btnLogin.setEnabled(true);
+                    btnLogin.setText("LOGIN");
+                    Toast.makeText(LoginActivity.this,
+                            "Invalid email or password!",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
+    private void goToMain() {
+        Intent intent = new Intent(
+                LoginActivity.this, MainActivity.class
+        );
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

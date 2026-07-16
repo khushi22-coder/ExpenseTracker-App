@@ -7,6 +7,57 @@
     android:orientation="vertical"
     android:background="@color/light_gray">
 
+    <!-- Search Bar -->
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="🔍 Search transactions..."
+        android:padding="12dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/input_bg"
+        android:inputType="text"/>
+
+    <!-- Filter Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btnAll"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:text="All"
+            android:textSize="12sp"
+            android:layout_marginRight="4dp"
+            android:backgroundTint="@color/primary"/>
+
+        <Button
+            android:id="@+id/btnIncome"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:text="Income"
+            android:textSize="12sp"
+            android:layout_marginRight="4dp"
+            android:backgroundTint="@color/income_green"/>
+
+        <Button
+            android:id="@+id/btnExpense"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:text="Expense"
+            android:textSize="12sp"
+            android:backgroundTint="@color/expense_red"/>
+
+    </LinearLayout>
+
     <!-- TOP CARD - Balance Summary -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -22,7 +73,6 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Total Balance Label -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -30,7 +80,6 @@
                 android:textColor="@color/white"
                 android:textSize="14sp"/>
 
-            <!-- Balance Amount -->
             <TextView
                 android:id="@+id/tvBalance"
                 android:layout_width="wrap_content"
@@ -41,14 +90,12 @@
                 android:textStyle="bold"
                 android:layout_marginTop="4dp"/>
 
-            <!-- Income and Expense Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="16dp">
 
-                <!-- Income -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -73,13 +120,11 @@
                         android:textStyle="bold"/>
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="1dp"
                     android:layout_height="40dp"
                     android:background="@color/white"/>
 
-                <!-- Expense -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -124,7 +169,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"/>
+        android:padding="8dp"
+        android:layoutAnimation="@anim/layout_animation"/>
 
     <!-- No Transaction Text -->
     <TextView
